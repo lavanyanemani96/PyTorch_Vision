@@ -106,7 +106,7 @@ class train_args():
         self.optimizer = optimizer
         self.scheduler = scheduler
 
-def train_model(model, train_args, train_loader, test_loader, EPOCHS):
+def train_model(model, device, train_args, train_loader, test_loader, EPOCHS):
 
     criterion, optimizer, scheduler = train_args.criterion, train_args.optimizer, train_args.scheduler
     for epoch in range(EPOCHS):
