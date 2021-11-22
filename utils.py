@@ -86,9 +86,6 @@ def device():
     device = torch.device("cuda" if use_cuda else "cpu")
     return device, use_cuda
 
-def data_loader(dataset, device, use_cuda):
-    return torch.utils.data.DataLoader(dataset, batch_size=args(batch_size, device, use_cuda).batch_size, shuffle=True, **args(batch_size, device, use_cuda).kwargs)
-
 def summary(model, device, input_size):
   print(summary(model.to(device), input_size=input_size))
 
