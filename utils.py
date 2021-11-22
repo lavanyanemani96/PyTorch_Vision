@@ -42,9 +42,12 @@ def mean_std_cifar10(dataset):
 def augmentation(data, mu, sigma):
 
   if data == 'Train':
-    transform = A.Compose([A.RandomCrop(32, padding=4),
+    transform = A.Compose([A.PadIfNeeded(min_height=36,
+                                        min_width=36,
+                                        border_mode=cv2.BORDER_CONSTANT,
+                                        value=np.mean(mu)),
+                           A.RandomCrop(32, 32),
                            A.Cutout(num_holes=1, max_h_size=16, max_w_size=16, fill_value=np.mean(mu)),
-                           A.Rotate(limit=5),
                            A.Normalize(mean=mu, std=sigma),
                            ToTensorV2()])
   else:
