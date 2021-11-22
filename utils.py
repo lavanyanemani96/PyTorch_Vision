@@ -70,7 +70,7 @@ def augmentation(data, mu, sigma):
 classes = ['plane', 'car', 'bird', 'cat',
            'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
-def plot_grid(image, label, UnNorm=None, predictions=None):
+def plot_grid(image, label, UnNorm=None, predictions=[]):
 
     nrows = 2
     ncols = 5
@@ -81,7 +81,7 @@ def plot_grid(image, label, UnNorm=None, predictions=None):
             for j in range(ncols):
                 index = i * ncols + j
                 ax[i, j].axis("off")
-                ax[i, j].set_title('Label: %s, Pred: %s' %(classes[label[index].cpu()],classes[predictions[index].cpu().argmax()]))
+                ax[i, j].set_title('Label: %s, \nPred: %s' %(classes[label[index].cpu()],classes[predictions[index].cpu().argmax()]))
                 ax[i, j].imshow(np.transpose(UnNorm(image[index].cpu()), (1, 2, 0)))
     else:
         for i in range(nrows):
@@ -90,6 +90,19 @@ def plot_grid(image, label, UnNorm=None, predictions=None):
                 ax[i, j].axis("off")
                 ax[i, j].set_title("Label: %s" %(classes[label[index]]))
                 ax[i, j].imshow(np.transpose(image[index], (1, 2, 0)))
+
+def plot_grid_gradcam(images, label, predictions, heatmaps, UnNorm=None):
+
+  nrows = 2
+  ncols = 5
+
+  fig, ax = plt.subplots(nrows, ncols, figsize=(8, 4))
+  for i in range(nrows):
+    for j in range(ncols):
+      index = i * ncols + j
+      ax[i, j].axis("off")
+      ax[i, j].set_title('Label: %s, \nPred: %s' %(classes[label[index].cpu()],classes[predictions[index].cpu().argmax()]))
+      ax[i, j].imshow(superimpose(heatmaps[index], images[index], UnNorm))
 
 def superimpose(heatmap, image, UnNorm=None):
 
