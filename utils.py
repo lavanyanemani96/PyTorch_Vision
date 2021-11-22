@@ -31,35 +31,24 @@ class UnNormalize(object):
 
 def mean_std_cifar10(dataset):
 
-  imgs = [item[0]/255.0 for item in dataset]
-  labels = [item[1] for item in dataset]
+  train_data = dataset.data
+  train_data = train_data / 255.0
 
-  imgs = torch.stack(imgs, dim=0).numpy()
+  mean = np.mean(train_data, axis=tuple(range(train_data.ndim-1)))
+  std = np.std(train_data, axis=tuple(range(train_data.ndim-1)))
 
-  mean_r = imgs[:,0,:,:].mean()
-  mean_g = imgs[:,1,:,:].mean()
-  mean_b = imgs[:,2,:,:].mean()
-  mu = [mean_r,mean_g,mean_b]
-  print("Mean:", mu)
-
-  std_r = imgs[:,0,:,:].std()
-  std_g = imgs[:,1,:,:].std()
-  std_b = imgs[:,2,:,:].std()
-  sigma = [std_r,std_g,std_b]
-  print("Std:", sigma)
-
-  return mu, sigma
+  return mean, std
 
 def augmentation(data, mu, sigma):
 
   if data == 'Train':
-    transform = A.Compose([A.Normalize(mean=mu, std=sigma),
-                           A.PadIfNeeded(min_height=36,
+    transform = A.Compose([A.PadIfNeeded(min_height=36,
                                         min_width=36,
                                         border_mode=cv2.BORDER_CONSTANT,
                                         value=np.mean(mu)),
                            A.RandomCrop(32, 32),
                            A.Cutout(num_holes=1, max_h_size=16, max_w_size=16, fill_value=np.mean(mu)),
+                           A.Normalize(mean=mu, std=sigma),
                            ToTensorV2()])
   else:
     transform = A.Compose([A.Normalize(mean=mu, std=sigma),
