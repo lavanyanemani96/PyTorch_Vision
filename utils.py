@@ -3,7 +3,7 @@ dataloaders +
 model summary +
 plotting +
 image transforms +
-gradcam
+gradcam +
 misclassification code +
 tensorboard related stuff
 advanced training policies
@@ -81,6 +81,18 @@ def plot_grid(image, label, predictions=None):
                 ax[i, j].set_title("Label: %s" %(classes[label[index]]))
                 ax[i, j].imshow(np.transpose(image[index], (1, 2, 0)))
 
+def superimpose(heatmap, image):
+
+    image = np.transpose(image.cpu(), (1, 2, 0))
+    heatmap = cv2.resize(heatmap.numpy(), (image.shape[1], image.shape[0]))
+    heatmap = np.uint8(255*heatmap)
+    heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+    superimposed_image = (heatmap * 0.4) + 255*image.numpy()
+
+    return superimposed_image/superimposed_image.max()
+
+
+
 def device():
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -89,6 +101,42 @@ def device():
 def show_summary(model, device, input_size):
   print(summary(model.to(device), input_size=input_size))
 
+def plot_loss_accuracy(results):
+    train_losses, test_losses, train_acc, test_acc = results
+    fig, axs = plt.subplots(2,2,figsize=(15,10))
+
+    axs[0, 0].plot(train_losses)
+    axs[0, 0].set_title("Training Loss")
+
+    axs[0, 1].plot(test_losses)
+    axs[0, 1].set_title("Test Loss")
+
+    axs[1, 0].plot(train_accuracy)
+    axs[1, 0].set_title("Training Accuracy")
+
+    axs[1, 1].plot(test_accuracy)
+    axs[1, 1].set_title("Test Accuracy")
+    plt.show()
+
 def classfication_result(predictions, labels, device, b=True):
     # for misclassified images, b = False
     return torch.where((predictions.argmax(dim=1) == labels) == b)[0]
+
+def gradcam(model, results, test_images, device):
+
+    results[torch.arange(len(results)),
+            results.argmax(dim=1)].backward(torch.ones_like(results.argmax(dim=1)))
+
+    gradients = model.get_activations_gradient()
+    pooled_gradients = torch.mean(gradients, dim=[2, 3])
+    activations = model.get_activations(test_images.to(device)).detach()
+
+    for j in range(activations.shape[0]):
+        for i in range(512):
+            activations[j, i, :, :] *= pooled_gradients[j, i]
+
+    heatmaps = torch.mean(activations, dim=1).squeeze()
+    heatmaps = np.maximum(heatmaps.cpu(), 0)
+    heatmaps /= torch.max(heatmaps)
+
+    return heatmaps
