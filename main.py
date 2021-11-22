@@ -9,6 +9,7 @@ do we run a scheduler +
 
 from tqdm import tqdm
 import torch
+import torchvision
 import cv2
 
 cv2.setNumThreads(0)
@@ -37,6 +38,9 @@ class args():
         self.device = device
         self.use_cuda = use_cuda
         self.kwargs = {'num_workers': 4, 'pin_memory': True} if self.use_cuda else {}
+
+def data_loader(dataset, args):
+    return torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True, **args.kwargs)
 
 train_losses = []
 test_losses = []
