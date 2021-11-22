@@ -86,7 +86,7 @@ def device():
     device = torch.device("cuda" if use_cuda else "cpu")
     return device, use_cuda
 
-def summary(model, device, input_size):
+def show_summary(model, device, input_size):
   print(summary(model.to(device), input_size=input_size))
 
 def classfication_result(predictions, labels, device, b=True):
