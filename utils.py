@@ -67,7 +67,7 @@ def plot_grid(image, label, predictions=None):
             for j in range(ncols):
                 index = i * ncols + j
                 ax[i, j].axis("off")
-                ax[i, j].set_title("Label: %s, Pred: %s" %(classes[label[index].cpu()],classes[predictions[index].cpu().argmax()))
+                ax[i, j].set_title('Label: %s, Pred: %s' %(classes[label[index].cpu()],classes[predictions[index].cpu()].argmax()))
                 ax[i, j].imshow(np.transpose(image[index].cpu(), (1, 2, 0)))
     else:
         for i in range(nrows):
