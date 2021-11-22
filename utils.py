@@ -153,7 +153,7 @@ def gradcam(model, results, test_images, device):
     activations = model.get_activations(test_images.to(device)).detach()
 
     for j in range(activations.shape[0]):
-        for i in range(128):
+        for i in range(512):
             activations[j, i, :, :] *= pooled_gradients[j, i]
 
     heatmaps = torch.mean(activations, dim=1).squeeze()
