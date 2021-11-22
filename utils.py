@@ -10,6 +10,7 @@ advanced training policies
 '''
 import numpy as np
 import matplotlib.pyplot as plt
+import cv2
 
 import torch
 import torchvision
