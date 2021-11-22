@@ -19,6 +19,16 @@ from torchsummary import summary
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
+class UnNormalize(object):
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, tensor):
+        for t, m, s in zip(tensor, self.mean, self.std):
+            t.mul_(s).add_(m)
+        return tensor
+
 def mean_std_cifar10(dataset):
 
   imgs = [item[0] for item in dataset]
@@ -60,19 +70,19 @@ def augmentation(data, mu, sigma):
 classes = ['plane', 'car', 'bird', 'cat',
            'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
-def plot_grid(image, label, predictions=None):
+def plot_grid(image, label, UnNorm=None, predictions=None):
 
     nrows = 2
     ncols = 5
 
     fig, ax = plt.subplots(nrows, ncols, figsize=(8, 4))
-    if predictions:
+    if len(predictions):
         for i in range(nrows):
             for j in range(ncols):
                 index = i * ncols + j
                 ax[i, j].axis("off")
-                ax[i, j].set_title('Label: %s, Pred: %s' %(classes[label[index].cpu()],classes[predictions[index].cpu()].argmax()))
-                ax[i, j].imshow(np.transpose(image[index].cpu(), (1, 2, 0)))
+                ax[i, j].set_title('Label: %s, Pred: %s' %(classes[label[index].cpu()],classes[predictions[index].cpu().argmax()]))
+                ax[i, j].imshow(np.transpose(UnNorm(image[index].cpu()), (1, 2, 0)))
     else:
         for i in range(nrows):
             for j in range(ncols):
@@ -81,17 +91,15 @@ def plot_grid(image, label, predictions=None):
                 ax[i, j].set_title("Label: %s" %(classes[label[index]]))
                 ax[i, j].imshow(np.transpose(image[index], (1, 2, 0)))
 
-def superimpose(heatmap, image):
+def superimpose(heatmap, image, UnNorm=None):
 
-    image = np.transpose(image.cpu(), (1, 2, 0))
+    image = np.transpose(UnNorm(image.cpu()), (1, 2, 0))
     heatmap = cv2.resize(heatmap.numpy(), (image.shape[1], image.shape[0]))
     heatmap = np.uint8(255*heatmap)
     heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
     superimposed_image = (heatmap * 0.4) + 255*image.numpy()
 
     return superimposed_image/superimposed_image.max()
-
-
 
 def device():
     use_cuda = torch.cuda.is_available()
