@@ -31,10 +31,10 @@ class UnNormalize(object):
 
 def mean_std_cifar10(dataset):
 
-  imgs = [item[0] for item in dataset]
+  imgs = [item[0]/255.0 for item in dataset]
   labels = [item[1] for item in dataset]
 
-  imgs = torch.stack(imgs, dim=0).numpy()/255.
+  imgs = torch.stack(imgs, dim=0).numpy()
 
   mean_r = imgs[:,0,:,:].mean()
   mean_g = imgs[:,1,:,:].mean()
