@@ -103,7 +103,7 @@ def test(model, device, test_loader, criterion):
 class train_args():
     def __init__(self, criterion, optimizer, scheduler):
         self.criterion = criterion
-        self.optimizer = device
+        self.optimizer = optimizer
         self.scheduler = scheduler
 
 def train_model(model, train_args, train_loader, test_loader, EPOCHS):
