@@ -19,6 +19,8 @@ from torchsummary import summary
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
+from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM
+
 class UnNormalize(object):
     def __init__(self, mean, std):
         self.mean = mean
@@ -80,29 +82,6 @@ def plot_grid(image, label, UnNorm=None, predictions=[]):
                 ax[i, j].set_title("Label: %s" %(classes[label[index]]))
                 ax[i, j].imshow(np.transpose(image[index], (1, 2, 0)))
 
-def plot_grid_gradcam(images, label, predictions, heatmaps, UnNorm=None):
-
-  nrows = 2
-  ncols = 5
-
-  fig, ax = plt.subplots(nrows, ncols, figsize=(8, 4))
-  for i in range(nrows):
-    for j in range(ncols):
-      index = i * ncols + j
-      ax[i, j].axis("off")
-      ax[i, j].set_title('Label: %s, \nPred: %s' %(classes[label[index].cpu()],classes[predictions[index].cpu().argmax()]))
-      ax[i, j].imshow(superimpose(heatmaps[index], images[index], UnNorm))
-
-def superimpose(heatmap, image, UnNorm=None):
-
-    image = np.transpose(UnNorm(image.cpu()), (1, 2, 0))
-    heatmap = cv2.resize(heatmap.numpy(), (image.shape[1], image.shape[0]))
-    heatmap = np.uint8(255*heatmap)
-    heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
-    superimposed_image = (heatmap * 0.4) + 255*image.numpy()
-
-    return superimposed_image/superimposed_image.max()
-
 def device():
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -132,21 +111,54 @@ def classfication_result(predictions, labels, device, b=True):
     # for misclassified images, b = False
     return torch.where((predictions.argmax(dim=1) == labels) == b)[0]
 
-def gradcam(model, results, test_images, device):
+def grad_cam(model, use_cuda, test_images, test_targets):
 
-    results[torch.arange(len(results)),
-            results.argmax(dim=1)].backward(torch.ones_like(results.argmax(dim=1)))
+    cam = GradCAM(model=model, target_layers=[model.layer4[-1]], use_cuda=use_cuda)
+    image_cam = cam(input_tensor=test_images, target_category=test_targets)
 
-    gradients = model.get_activations_gradient()
-    pooled_gradients = torch.mean(gradients, dim=[2, 3])
-    activations = model.get_activations(test_images.to(device)).detach()
+    return image_cam
 
-    for j in range(activations.shape[0]):
-        for i in range(512):
-            activations[j, i, :, :] *= pooled_gradients[j, i]
+def show_cam_on_image(img: np.ndarray,
+                      mask: np.ndarray,
+                      use_rgb: bool = False,
+                      colormap: int = cv2.COLORMAP_JET) -> np.ndarray:
+    """ This function overlays the cam mask on the image as an heatmap.
+    By default the heatmap is in BGR format.
+    :param img: The base image in RGB or BGR format.
+    :param mask: The cam mask.
+    :param use_rgb: Whether to use an RGB or BGR heatmap, this should be set to True if 'img' is in RGB format.
+    :param colormap: The OpenCV colormap to be used.
+    :returns: The default image with the cam overlay.
+    """
+    heatmap = cv2.applyColorMap(np.uint8(255 * mask), colormap)
 
-    heatmaps = torch.mean(activations, dim=1).squeeze()
-    heatmaps = np.maximum(heatmaps.cpu(), 0)
-    heatmaps /= torch.max(heatmaps)
+    if use_rgb:
+        heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+    heatmap = np.float32(heatmap) / 255
 
-    return heatmaps
+    if np.max(img) > 1:
+        raise Exception(
+            "The input image should np.float32 in the range [0, 1]")
+
+    cam = heatmap + 5*img
+    cam = cam / np.max(cam)
+    return np.uint8(255 * cam)
+
+def plot_grid_cam(test_images, cam_images, label, predictions, UnNorm=None):
+
+    nrows = 2
+    ncols = 5
+
+    test_images = [np.transpose(UnNorm(test_images[i]).cpu().detach().numpy(), (1,2,0)) for i in range(len(test_images))]
+    cam_images = [cam_images[i].cpu().detach().numpy() for i in range(len(cam_images))]
+
+    super_impose = [show_cam_on_image(test_images[i], cam_images[i], use_rgb=True) for i in range(len(test_images))]
+
+    fig, ax = plt.subplots(nrows, ncols, figsize=(8, 4))
+    if len(predictions):
+        for i in range(nrows):
+            for j in range(ncols):
+                index = i * ncols + j
+                ax[i, j].axis("off")
+                ax[i, j].set_title('Label: %s, \nPred: %s' %(classes[label[index].cpu()],classes[predictions[index].cpu().argmax()]))
+                ax[i, j].imshow(super_impose[index])
