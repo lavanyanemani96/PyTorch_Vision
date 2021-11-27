@@ -100,7 +100,7 @@ def plot_grid(image, label, UnNorm=None, predictions=[]):
                 ax[i, j].set_title("Label: %s" %(classes[label[index]]))
                 ax[i, j].imshow(np.transpose(image[index], (1, 2, 0)))
 
-def device():
+def show_device():
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
     return device, use_cuda
