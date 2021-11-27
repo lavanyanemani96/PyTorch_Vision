@@ -58,6 +58,24 @@ def augmentation(data, mu, sigma):
 
   return transform
 
+def augmentation_custom_resnet(data, mu, sigma, pad=4):
+
+  if data == 'Train':
+    transform = A.Compose([A.PadIfNeeded(min_height=32+pad,
+                                        min_width=32+pad,
+                                        border_mode=cv2.BORDER_CONSTANT,
+                                        value=np.mean(mu)),
+                            A.RandomCrop(32, 32),
+                            A.HorizontalFlip(p=0.5),
+                            A.Cutout(max_h_size=8, max_w_size=8),
+                            A.Normalize(mean=mu, std=sigma),
+                            ToTensorV2(),
+  else:
+    transform = A.Compose([A.Normalize(mean=mu, std=sigma),
+                           ToTensorV2()])
+
+  return transform
+
 classes = ['plane', 'car', 'bird', 'cat',
            'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
