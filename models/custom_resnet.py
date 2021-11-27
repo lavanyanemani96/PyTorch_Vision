@@ -32,7 +32,7 @@ class CustomResNet(nn.Module):
 
         self.layer1 = nn.Sequential(
                 nn.Conv2d(3, 128, kernel_size=3, stride=1, padding=1, bias=False),
-                nn.MaxPool2D(2, 2),
+                nn.MaxPool2d(2, 2),
                 nn.BatchNorm2d(128),
                 nn.ReLU()
                 )
@@ -41,21 +41,21 @@ class CustomResNet(nn.Module):
 
         self.layer2 = nn.Sequential(
                 nn.Conv2d(3, 256, kernel_size=3, stride=1, padding=1, bias=False),
-                nn.MaxPool2D(2, 2),
+                nn.MaxPool2d(2, 2),
                 nn.BatchNorm2d(256),
                 nn.ReLU()
                 )
 
         self.layer3 = nn.Sequential(
                 nn.Conv2d(3, 512, kernel_size=3, stride=1, padding=1, bias=False),
-                nn.MaxPool2D(2, 2),
+                nn.MaxPool2d(2, 2),
                 nn.BatchNorm2d(512),
                 nn.ReLU()
                 )
 
         self.residual3 = block(512, 512, 1)
 
-        self.maxpool2d = nn.MaxPool2D(4, 4)
+        self.maxpool2d = nn.MaxPool2d(4, 4)
         self.fc = nn.Linear(512, num_classes)
 
     def forward(self, x):
