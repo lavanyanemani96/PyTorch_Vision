@@ -69,7 +69,7 @@ def augmentation_custom_resnet(data, mu, sigma, pad=4):
                             A.HorizontalFlip(p=0.5),
                             A.Cutout(max_h_size=8, max_w_size=8),
                             A.Normalize(mean=mu, std=sigma),
-                            ToTensorV2(),
+                            ToTensorV2()])
   else:
     transform = A.Compose([A.Normalize(mean=mu, std=sigma),
                            ToTensorV2()])
