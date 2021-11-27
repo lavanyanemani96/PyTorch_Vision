@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 def lr_exp(i, lr):
     return lr + np.exp(i**1.4/1e3)/1e5
