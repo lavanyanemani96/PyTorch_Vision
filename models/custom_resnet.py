@@ -22,7 +22,7 @@ class BasicBlock(nn.Module):
 
 class CustomResNet(nn.Module):
     def __init__(self, block, num_classes=10):
-        super(ResNet, self).__init__()
+        super(CustomResNet, self).__init__()
 
         self.preparation = nn.Sequential(
                 nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False),
