@@ -11,7 +11,6 @@ def lr_iterations(criterion, optimizer, model, train_loader):
 
     i = 0
     for epoch in range(4):
-
         model.train()
         pbar = tqdm(train_loader)
 
