@@ -5,7 +5,7 @@ from tqdm import tqdm
 def lr_exp(i, lr):
     return lr + np.exp(i**1.4/1e3)/1e5
 
-def lr_iterations(criterion, optimizer, model, train_loader):
+def lr_iterations(criterion, optimizer, model, train_loader, device):
 
     lrs, lr_finder_losses, iterations = [], [], []
 
