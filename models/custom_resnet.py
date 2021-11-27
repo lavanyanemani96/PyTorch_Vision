@@ -4,25 +4,27 @@ import torch.nn.functional as F
 
 class BasicBlock(nn.Module):
 
-    def __init__(self, in_planes, planes, stride=1):
+    def __init__(self, in_channels, out_channels, stride=1):
         super(BasicBlock, self).__init__()
 
-        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3,
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3,
                                stride=stride, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(planes)
+        self.bn1 = nn.BatchNorm2d(out_channels)
 
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3,
                                stride=1, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(planes)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+
+        self.relu = nn.ReLU()
 
     def forward(self, x):
-        x = nn.ReLU(self.bn1(self.conv1(x)))
-        x = nn.ReLU(self.bn2(self.conv2(x)))
+        x = self.relu(self.bn1(self.conv1(x)))
+        x = self.relu(self.bn2(self.conv2(x)))
         return x
 
-class CustomResNet(nn.Module):
+class ResNet(nn.Module):
     def __init__(self, block, num_classes=10):
-        super(CustomResNet, self).__init__()
+        super(ResNet, self).__init__()
 
         self.preparation = nn.Sequential(
                 nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False),
@@ -80,4 +82,4 @@ class CustomResNet(nn.Module):
         return x
 
 def Custom_ResNet():
-    return CustomResNet(BasicBlock)
+    return ResNet(BasicBlock, num_classes=10)
