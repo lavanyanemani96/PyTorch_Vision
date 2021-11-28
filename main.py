@@ -155,7 +155,7 @@ def train_model_OCL(model, device, train_args, train_loader, test_loader, EPOCHS
 
     for epoch in range(EPOCHS):
         print("EPOCH:", epoch)
-        train(model, device, train_loader, criterion , optimizer, epoch, scheduler)
+        train_OCL(model, device, train_loader, criterion , optimizer, epoch, scheduler)
         test(model, device, test_loader, criterion)
 
     return [train_losses, test_losses, train_acc, test_acc]
