@@ -136,6 +136,13 @@ def grad_cam(model, use_cuda, test_images, test_targets):
 
     return image_cam
 
+def grad_cam_OCL(model, use_cuda, test_images, test_targets):
+
+    cam = GradCAM(model=model, target_layers=[model.layer3[-1]], use_cuda=use_cuda)
+    image_cam = cam(input_tensor=test_images, target_category=test_targets)
+
+    return image_cam
+
 def show_cam_on_image(img: np.ndarray,
                       mask: np.ndarray,
                       use_rgb: bool = False,
