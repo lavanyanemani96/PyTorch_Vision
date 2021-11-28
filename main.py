@@ -76,6 +76,35 @@ def train(model, device, train_loader, criterion, optimizer, epoch):
   train_losses.append(loss)
   train_acc.append(100*correct/processed)
 
+def train_OCL(model, device, train_loader, criterion, optimizer, epoch, scheduler):
+
+    model.train()
+    pbar = tqdm(train_loader)
+    correct = 0
+    processed = 0
+    train_loss = 0
+
+    for batch_idx, (data, target) in enumerate(pbar):
+
+        data, target = data.to(device), target.to(device)
+        optimizer.zero_grad()
+
+        y_pred = model(data)
+        loss = criterion(y_pred, target)
+        train_loss += loss
+        loss.backward()
+        optimizer.step()
+        scheduler.step()
+
+        pred = y_pred.argmax(dim=1, keepdim=True)
+        correct += pred.eq(target.view_as(pred)).sum().item()
+        processed += len(data)
+
+        pbar.set_description(desc= f'Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}')
+
+    train_loss /= len(train_loader.dataset)
+    train_losses.append(loss)
+    train_acc.append(100*correct/processed)
 
 def test(model, device, test_loader, criterion):
 
@@ -116,5 +145,17 @@ def train_model(model, device, train_args, train_loader, test_loader, EPOCHS):
 
         if scheduler:
             scheduler.step()
+
+    return [train_losses, test_losses, train_acc, test_acc]
+
+# OneCycle LR requires that the scheduler step happen for each batch. hence we have to change these functions.
+def train_model_OCL(model, device, train_args, train_loader, test_loader, EPOCHS):
+
+    criterion, optimizer, scheduler = train_args.criterion, train_args.optimizer, train_args.scheduler
+
+    for epoch in range(EPOCHS):
+        print("EPOCH:", epoch)
+        train(model, device, train_loader, criterion , optimizer, epoch, scheduler)
+        test(model, device, test_loader, criterion)
 
     return [train_losses, test_losses, train_acc, test_acc]
