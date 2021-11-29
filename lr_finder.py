@@ -44,6 +44,7 @@ def lr_iterations(criterion, optimizer, model, train_loader, device):
     plt.plot(lrs, lr_finder_losses)
     plt.xlabel('Learning rate')
     plt.ylabel('Loss')
+    plt.xscale('log')
     plt.grid()
 
     plt.show()
