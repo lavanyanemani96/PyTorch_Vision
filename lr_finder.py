@@ -1,6 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from torch_lr_finder import LRFinder
+
+def learning_rate_finder(criterion, optimizer, model, device, train_loader):
+
+    lr_finder = LRFinder(model, optimizer, criterion, device=device)
+    lr_finder.range_test(train_loader, end_lr=100, num_iter=100)
+    lr_finder.plot()
+    lr_finder.reset()
 
 def lr_exp(i, lr):
     return lr + np.exp(i**1.4/1e3)/1e5
